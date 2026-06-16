@@ -258,7 +258,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
     
     const mailOptions = {
-      from: '"OpsGuardian Security" <security@opsguardian.com>',
+      from: process.env.SMTP_USER ? `"OpsGuardian Security" <${process.env.SMTP_USER}>` : '"OpsGuardian Security" <security@opsguardian.com>',
       to: email,
       subject: 'OpsGuardian - Password Reset Request',
       html: `
