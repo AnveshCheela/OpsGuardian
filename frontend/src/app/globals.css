@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --color-slate-900: #0f172a;
+  --color-slate-800: #1e293b;
+  --color-slate-700: #334155;
+  --color-espresso-dark: #1F150C;
+  --color-mocha: #412D15;
+  --color-cream: #E1DCC9;
+  --color-brand-cyan: #06b6d4;
+  --color-brand-pink: #ec4899;
+}
+
+@layer base {
+  body {
+    @apply bg-black text-cream antialiased min-h-screen selection:bg-mocha selection:text-cream;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-espresso-dark/90 backdrop-blur-md border border-mocha/50 rounded-2xl shadow-xl;
+  }
+  
+  .glass-panel-hover {
+    @apply hover:bg-espresso-dark hover:border-mocha transition-all duration-300 hover:shadow-mocha/20;
+  }
+
+  .status-badge {
+    @apply px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase inline-flex items-center gap-2;
+  }
+
+  .status-critical {
+    @apply bg-red-900/30 text-red-400 border border-red-900/50;
+  }
+  
+  .status-high {
+    @apply bg-orange-900/30 text-orange-400 border border-orange-900/50;
+  }
+}
