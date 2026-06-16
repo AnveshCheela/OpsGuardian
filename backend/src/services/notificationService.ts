@@ -3,8 +3,8 @@ import { Incident } from '@prisma/client';
 
 // Configure to use the local Maildev Docker container running on port 1025
 const transporter = nodemailer.createTransport({
-  host: 'localhost',
-  port: 1025,
+  host: process.env.SMTP_HOST || 'localhost',
+  port: parseInt(process.env.SMTP_PORT || '1025', 10),
   ignoreTLS: true
 });
 
@@ -29,6 +29,16 @@ export const sendEscalationEmail = async (engineerEmail: string, incident: Incid
     await transporter.sendMail(mailOptions);
     console.log(`[Notification] Escalation email sent to ${engineerEmail} for incident ${incident.id}`);
   } catch (error) {
-    console.error('[Notification] Failed to send email:', error);
+    console.error(`[MAIL ERROR] SMTP not configured. Could not send alert to ${engineerEmail}.`);
+    console.log(`
+==================================================
+📧 [SIMULATED EMAIL ALERT]
+To: ${engineerEmail}
+Subject: 🚨 ESCALATION (Step ${step}): ${incident.title}
+Body: This incident has not been acknowledged and has been escalated to you.
+Severity: ${incident.severity}
+Status: ${incident.status}
+==================================================
+    `);
   }
 };
