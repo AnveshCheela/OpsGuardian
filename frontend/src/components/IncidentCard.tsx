@@ -25,7 +25,7 @@ export const IncidentCard = ({ incident }: { incident: IncidentData }) => {
     setIsAcknowledging(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/incidents/${incident.id}/acknowledge`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/incidents/${incident.id}/acknowledge`, {
         method: 'PUT',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       });

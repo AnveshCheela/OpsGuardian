@@ -21,7 +21,7 @@ export default function IncidentsPage() {
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
-        const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/incidents`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/incidents`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {

@@ -15,7 +15,7 @@ export default function EmployeesPage() {
     
     setRemovingId(userId);
     try {
-      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/approval/${userId}/remove`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/approval/${userId}/remove`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -38,7 +38,7 @@ export default function EmployeesPage() {
   const saveOrderToBackend = async (newOrderIds: string[]) => {
     setSavingOrder(true);
     try {
-      await fetch(`\${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/teams/order`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/teams/order`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
