@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendEscalationEmail = async (engineerEmail: string, incident: Incident, step: number) => {
   const mailOptions = {
-    from: process.env.SMTP_USER ? `"OpsGuardian Alerts" <${process.env.SMTP_USER}>` : '"OpsGuardian Alerts" <alerts@opsguardian.local>',
+    from: process.env.SMTP_FROM ? `"OpsGuardian Alerts" <${process.env.SMTP_FROM}>` : process.env.SMTP_USER?.includes('@') ? `"OpsGuardian Alerts" <${process.env.SMTP_USER}>` : '"OpsGuardian Alerts" <alerts@opsguardian.local>',
     to: engineerEmail,
     subject: `🚨 ESCALATION (Step ${step}): ${incident.title}`,
     html: `
