@@ -40,7 +40,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/v1/incidents", {
+        const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/incidents`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -77,7 +77,7 @@ export default function Dashboard() {
   const fetchServices = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch("http://localhost:5000/api/v1/services", {
+      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/services`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -99,7 +99,7 @@ export default function Dashboard() {
     if (!triggerForm.serviceId || !triggerForm.title) return;
     setTriggerLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/v1/incidents/trigger", {
+      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/incidents/trigger`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

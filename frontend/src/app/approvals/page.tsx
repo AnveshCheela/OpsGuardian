@@ -32,7 +32,7 @@ export default function ApprovalsPage() {
   const fetchPendingUsers = useCallback(async () => {
     if (!isLeader || !token) return;
     try {
-      const res = await fetch("http://localhost:5000/api/v1/approval/pending", {
+      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/approval/pending`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -52,7 +52,7 @@ export default function ApprovalsPage() {
   const handleApprove = async (userId: string) => {
     setApprovalActions(prev => ({ ...prev, [userId]: true }));
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/approval/${userId}/approve`, {
+      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/approval/${userId}/approve`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -70,7 +70,7 @@ export default function ApprovalsPage() {
   const handleReject = async (userId: string) => {
     setApprovalActions(prev => ({ ...prev, [userId]: true }));
     try {
-      const res = await fetch(`http://localhost:5000/api/v1/approval/${userId}/reject`, {
+      const res = await fetch(`\${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/approval/${userId}/reject`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
