@@ -1,15 +1,20 @@
 import nodemailer from 'nodemailer';
 import { Incident } from '@prisma/client';
 
-// Configure to use the local Maildev Docker container running on port 1025
+const defaultPort = process.env.SMTP_HOST?.includes('gmail.com') ? '465' : '1025';
+const port = parseInt(process.env.SMTP_PORT || defaultPort, 10);
+
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'localhost',
-  port: parseInt(process.env.SMTP_PORT || '1025', 10),
-  secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
+  port: port,
+  secure: port === 465, // true for 465, false for other ports
   auth: process.env.SMTP_USER ? {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   } : undefined,
+  connectionTimeout: 5000, // Fail fast after 5 seconds instead of hanging
+  greetingTimeout: 5000,
+  socketTimeout: 5000,
 });
 
 export const sendEscalationEmail = async (engineerEmail: string, incident: Incident, step: number) => {
