@@ -38,7 +38,7 @@ export const sendEscalationEmail = async (engineerEmail: string, incident: Incid
     await transporter.sendMail(mailOptions);
     console.log(`[Notification] Escalation email sent to ${engineerEmail} for incident ${incident.id}`);
   } catch (error) {
-    console.error(`[MAIL ERROR] SMTP not configured. Could not send alert to ${engineerEmail}.`);
+    console.error(`[MAIL ERROR] SMTP failed. Could not send alert to ${engineerEmail}. Reason:`, error);
     console.log(`
 ==================================================
 📧 [SIMULATED EMAIL ALERT]
