@@ -1,0 +1,121 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  Leader
+  Employee
+}
+
+enum UserStatus {
+  Pending
+  Approved
+  Rejected
+}
+
+enum ServiceStatus {
+  Active
+  Muted
+  Degraded
+}
+
+enum IncidentStatus {
+  Triggered
+  Acknowledged
+  Resolved
+}
+
+model User {
+  id                    String        @id @default(uuid())
+  name                  String
+  email                 String        @unique
+  passwordHash          String
+  resetPasswordToken    String?
+  resetPasswordExpires  DateTime?
+  contactNumber         String?
+  companyName           String
+  role                  Role
+  status                UserStatus    @default(Approved)
+  leaderId              String?
+  leader                User?         @relation("LeaderEmployees", fields: [leaderId], references: [id])
+  employees             User[]        @relation("LeaderEmployees")
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  teams                 Team[]        @relation("TeamMembers")
+  ledTeams              Team[]        @relation("TeamLeader")
+  acknowledgedIncidents Incident[]    @relation("AcknowledgedBy")
+  resolvedIncidents     Incident[]    @relation("ResolvedBy")
+  chatMessages          ChatMessage[]
+}
+
+model Team {
+  id            String        @id @default(uuid())
+  name          String
+  companyName   String        @unique
+  leaderId      String
+  leader        User          @relation("TeamLeader", fields: [leaderId], references: [id])
+  employeeOrder String[]      @default([])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  users         User[]        @relation("TeamMembers")
+  services      Service[]
+  chatMessages   ChatMessage[]
+}
+
+model Service {
+  id         String        @id @default(uuid())
+  teamId     String
+  team       Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name       String
+  webhookKey String        @unique @default(uuid())
+  status     ServiceStatus @default(Active)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  incidents  Incident[]
+}
+
+model Incident {
+  id                 String         @id @default(uuid())
+  serviceId          String
+  service            Service        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  status             IncidentStatus @default(Triggered)
+  severity           String         @default("High")
+  deduplicationKey   String         @unique
+  title              String
+  description        String?
+  aiSummary          String?
+  aiSuggestedAction  String?
+  acknowledgedById   String?
+  acknowledgedBy     User?          @relation("AcknowledgedBy", fields: [acknowledgedById], references: [id], onDelete: SetNull)
+  resolvedById       String?
+  resolvedBy         User?          @relation("ResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+  acknowledgedAt     DateTime?
+  resolvedAt         DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  logs               IncidentLog[]
+}
+
+model IncidentLog {
+  id         String   @id @default(uuid())
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  s3FileUrl  String
+  logPreview String?
+  createdAt  DateTime @default(now())
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+}

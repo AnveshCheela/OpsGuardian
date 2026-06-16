@@ -1,0 +1,59 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+
+    # Backend Tasks
+    - name: Install Backend Dependencies
+      run: npm ci
+      working-directory: ./backend
+
+    - name: Generate Prisma Client
+      run: npx prisma generate
+      working-directory: ./backend
+
+    - name: Validate Prisma Schema
+      run: npx prisma validate
+      working-directory: ./backend
+
+    - name: Build Backend
+      run: npm run build
+      working-directory: ./backend
+
+    # Frontend Tasks
+    - name: Install Frontend Dependencies
+      run: npm ci
+      working-directory: ./frontend
+
+    - name: Lint Frontend
+      run: npm run lint
+      working-directory: ./frontend
+
+    - name: Build Frontend
+      run: npm run build
+      working-directory: ./frontend
+      env:
+        # Provide dummy env vars for Next.js build if needed
+        NEXT_PUBLIC_API_URL: http://localhost:5000
