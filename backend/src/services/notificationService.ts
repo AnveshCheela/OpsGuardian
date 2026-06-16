@@ -1,53 +1,28 @@
-import nodemailer from 'nodemailer';
 import { Incident } from '@prisma/client';
-
-const defaultPort = process.env.SMTP_HOST?.includes('gmail.com') ? '465' : '1025';
-const port = parseInt(process.env.SMTP_PORT || defaultPort, 10);
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'localhost',
-  port: port,
-  secure: port === 465, // true for 465, false for other ports
-  auth: process.env.SMTP_USER ? {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  } : undefined,
-  connectionTimeout: 5000, // Fail fast after 5 seconds instead of hanging
-  greetingTimeout: 5000,
-  socketTimeout: 5000,
-});
+import { sendEmail } from './emailService';
 
 export const sendEscalationEmail = async (engineerEmail: string, incident: Incident, step: number) => {
-  const mailOptions = {
-    from: process.env.SMTP_FROM ? `"OpsGuardian Alerts" <${process.env.SMTP_FROM}>` : process.env.SMTP_USER?.includes('@') ? `"OpsGuardian Alerts" <${process.env.SMTP_USER}>` : '"OpsGuardian Alerts" <alerts@opsguardian.local>',
-    to: engineerEmail,
-    subject: `🚨 ESCALATION (Step ${step}): ${incident.title}`,
-    html: `
-      <h2>Critical Incident Escalation</h2>
-      <p>This incident has not been acknowledged and has been escalated to you.</p>
-      <ul>
-        <li><strong>Severity:</strong> ${incident.severity}</li>
-        <li><strong>Title:</strong> ${incident.title}</li>
-        <li><strong>Status:</strong> ${incident.status}</li>
-      </ul>
-      <p>Please log into the OpsGuardian dashboard immediately to acknowledge this alert.</p>
-    `
-  };
+  const subject = `🚨 ESCALATION (Step ${step}): ${incident.title}`;
+  const html = `
+    <h2>Critical Incident Escalation</h2>
+    <p>This incident has not been acknowledged and has been escalated to you.</p>
+    <ul>
+      <li><strong>Severity:</strong> ${incident.severity}</li>
+      <li><strong>Title:</strong> ${incident.title}</li>
+      <li><strong>Status:</strong> ${incident.status}</li>
+    </ul>
+    <p>Please log into the OpsGuardian dashboard immediately to acknowledge this alert.</p>
+  `;
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`[Notification] Escalation email sent to ${engineerEmail} for incident ${incident.id}`);
+    await sendEmail({
+      to: engineerEmail,
+      subject,
+      html
+    });
+    console.log(`[Notification] Escalation email process completed for ${engineerEmail} for incident ${incident.id}`);
   } catch (error) {
-    console.error(`[MAIL ERROR] SMTP failed. Could not send alert to ${engineerEmail}. Reason:`, error);
-    console.log(`
-==================================================
-📧 [SIMULATED EMAIL ALERT]
-To: ${engineerEmail}
-Subject: 🚨 ESCALATION (Step ${step}): ${incident.title}
-Body: This incident has not been acknowledged and has been escalated to you.
-Severity: ${incident.severity}
-Status: ${incident.status}
-==================================================
-    `);
+    // Already logged inside sendEmail, but we want to catch it to avoid breaking worker execution
+    console.warn(`[Notification] Escalation email failed to send to ${engineerEmail}, but fallback simulation completed.`);
   }
 };

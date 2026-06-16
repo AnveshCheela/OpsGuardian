@@ -3,19 +3,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../config/database';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
+import { sendEmail } from '../services/emailService';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-opsguardian-key';
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'localhost',
-  port: parseInt(process.env.SMTP_PORT || '1025', 10),
-  secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
-  auth: process.env.SMTP_USER ? {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  } : undefined,
-});
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -258,7 +248,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
     
     const mailOptions = {
-      from: process.env.SMTP_FROM ? `"OpsGuardian Security" <${process.env.SMTP_FROM}>` : process.env.SMTP_USER?.includes('@') ? `"OpsGuardian Security" <${process.env.SMTP_USER}>` : '"OpsGuardian Security" <security@opsguardian.local>',
+      from: process.env.SMTP_USER ? `"OpsGuardian Security" <${process.env.SMTP_USER}>` : '"OpsGuardian Security" <security@opsguardian.com>',
       to: email,
       subject: 'OpsGuardian - Password Reset Request',
       html: `
@@ -276,10 +266,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
     };
 
     try {
-      await transporter.sendMail(mailOptions);
-      console.log(`[MAIL] Password reset email sent for ${email}`);
+      await sendEmail(mailOptions);
+      console.log(`[MAIL] Password reset email sent successfully for ${email}`);
     } catch (mailError) {
-      console.error(`[MAIL ERROR] Could not send email. SMTP might not be configured in production.`);
+      console.error(`[MAIL ERROR] Could not send email via email service.`);
       console.log(`[FALLBACK] Password reset link for ${email}: ${resetLink}`);
     }
 
