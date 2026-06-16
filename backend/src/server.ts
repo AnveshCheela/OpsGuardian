@@ -85,7 +85,12 @@ globalEvents.on('new-incident', (incident) => {
   console.log(`[Socket.io] Broadcasted new-incident: ${incident.id}`);
 });
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
