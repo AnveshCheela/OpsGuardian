@@ -250,7 +250,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
       data: { resetPasswordToken: resetToken, resetPasswordExpires }
     });
 
-    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
     
     const mailOptions = {
       from: '"OpsGuardian Security" <security@opsguardian.com>',
@@ -270,8 +271,13 @@ export const forgotPassword = async (req: Request, res: Response) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log(`[MAILDEV] Password reset email sent to MailDev for ${email}`);
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`[MAIL] Password reset email sent for ${email}`);
+    } catch (mailError) {
+      console.error(`[MAIL ERROR] Could not send email. SMTP might not be configured in production.`);
+      console.log(`[FALLBACK] Password reset link for ${email}: ${resetLink}`);
+    }
 
     return res.status(200).json({ message: 'If that email is registered, a reset link has been sent.' });
   } catch (error) {
