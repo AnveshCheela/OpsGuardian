@@ -5,7 +5,11 @@ import { Incident } from '@prisma/client';
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'localhost',
   port: parseInt(process.env.SMTP_PORT || '1025', 10),
-  ignoreTLS: true
+  secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
+  auth: process.env.SMTP_USER ? {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  } : undefined,
 });
 
 export const sendEscalationEmail = async (engineerEmail: string, incident: Incident, step: number) => {
