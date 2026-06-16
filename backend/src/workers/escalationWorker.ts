@@ -71,8 +71,17 @@ export const escalationWorker = new Worker(
       // 5. Send email to the current person in the chain
       const currentPerson = escalationChain[stepIndex];
       if (currentPerson) {
-        await sendEscalationEmail(currentPerson.email, incident, stepIndex + 1);
-        console.log(`[Escalation Worker] Escalation email sent to ${currentPerson.email} (step ${stepIndex + 1})`);
+        const emailResult = await sendEscalationEmail(currentPerson.email, incident, stepIndex + 1);
+
+        if (emailResult.success) {
+          console.log(
+            `[Escalation Worker] Escalation email delivered to ${currentPerson.email} via ${emailResult.method} (step ${stepIndex + 1})`
+          );
+        } else {
+          console.warn(
+            `[Escalation Worker] Escalation email was not delivered to ${currentPerson.email}; simulation logged (step ${stepIndex + 1}).`
+          );
+        }
       }
 
       // 6. Queue next step if there are more people

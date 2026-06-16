@@ -1,8 +1,18 @@
 import { Incident } from '@prisma/client';
-import { sendEmail } from './emailService';
+import { sendEmail, type SendEmailResult } from './emailService';
 
-export const sendEscalationEmail = async (engineerEmail: string, incident: Incident, step: number) => {
-  const subject = `🚨 ESCALATION (Step ${step}): ${incident.title}`;
+type SimulatedEmailResult = {
+  success: false;
+  method: 'simulation';
+  error: string;
+};
+
+export const sendEscalationEmail = async (
+  engineerEmail: string,
+  incident: Incident,
+  step: number
+): Promise<SendEmailResult | SimulatedEmailResult> => {
+  const subject = `[OpsGuardian] ESCALATION (Step ${step}): ${incident.title}`;
   const html = `
     <h2>Critical Incident Escalation</h2>
     <p>This incident has not been acknowledged and has been escalated to you.</p>
@@ -15,14 +25,21 @@ export const sendEscalationEmail = async (engineerEmail: string, incident: Incid
   `;
 
   try {
-    await sendEmail({
+    const result = await sendEmail({
       to: engineerEmail,
       subject,
       html
     });
-    console.log(`[Notification] Escalation email process completed for ${engineerEmail} for incident ${incident.id}`);
-  } catch (error) {
-    // Already logged inside sendEmail, but we want to catch it to avoid breaking worker execution
-    console.warn(`[Notification] Escalation email failed to send to ${engineerEmail}, but fallback simulation completed.`);
+
+    console.log(
+      `[Notification] Escalation email delivered to ${engineerEmail} via ${result.method} for incident ${incident.id}`
+    );
+    return result;
+  } catch (error: any) {
+    const message = error.message || String(error);
+    console.warn(
+      `[Notification] Escalation email was not delivered to ${engineerEmail}; simulation was logged. Reason: ${message}`
+    );
+    return { success: false, method: 'simulation', error: message };
   }
 };
