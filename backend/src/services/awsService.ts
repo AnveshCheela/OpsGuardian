@@ -1,5 +1,6 @@
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import crypto from 'crypto';
 
 // Ensure region is set from ENV, default to us-east-1
 const region = process.env.AWS_REGION || 'us-east-1';
@@ -56,4 +57,24 @@ export const fetchLogFromS3 = async (bucket: string, key: string): Promise<strin
   // AWS SDK v3 returns a stream for the Body. We need to convert it to a string.
   const str = await response.Body.transformToString('utf-8');
   return str;
+};
+
+/**
+ * Uploads a real error log to S3.
+ * Returns the Bucket Name and S3 Object Key of the generated log.
+ */
+export const uploadRealLogToS3 = async (logContent: string) => {
+  const bucket = process.env.S3_BUCKET_NAME || 'opsguardian-logs-anveshcheela';
+  const key = `crash-logs/real-log-${crypto.randomBytes(8).toString('hex')}.txt`;
+
+  const command = new PutObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    Body: logContent,
+    ContentType: 'text/plain',
+  });
+
+  await s3Client.send(command);
+
+  return { bucket, key };
 };

@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-opsguardian-key';
 
 export const signup = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, contactNumber, companyName, role } = req.body;
+    const { name, email, password, contactNumber, companyName, role, platformName } = req.body;
 
     if (!name || !email || !password || !companyName || !role) {
       return res.status(400).json({ error: 'Name, email, password, companyName, and role are required' });
@@ -72,9 +72,9 @@ export const signup = async (req: Request, res: Response) => {
       });
 
       // Create default service
-      await prisma.service.create({
+      const service = await prisma.service.create({
         data: {
-          name: 'Production Service',
+          name: platformName || 'Production Service',
           teamId: team.id,
         },
       });
@@ -84,6 +84,7 @@ export const signup = async (req: Request, res: Response) => {
       return res.status(201).json({
         message: 'User created successfully',
         token,
+        webhookKey: service.webhookKey,
         user: { id: user.id, name: user.name, email: user.email, role: user.role, status: user.status, companyName: user.companyName },
       });
     } else {

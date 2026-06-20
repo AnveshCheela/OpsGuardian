@@ -2,7 +2,7 @@ import { Worker, Job, Queue } from 'bullmq';
 import { redis } from '../config/redis';
 import { INCIDENT_QUEUE_NAME } from '../queues/incidentQueue';
 import { ESCALATION_QUEUE_NAME } from './escalationWorker';
-import { invokeLogGeneratorLambda, fetchLogFromS3 } from '../services/awsService';
+import { invokeLogGeneratorLambda, fetchLogFromS3, uploadRealLogToS3 } from '../services/awsService';
 import { analyzeLogWithGemini } from '../services/aiService';
 import { prisma } from '../config/database';
 import { globalEvents } from '../events';
@@ -17,14 +17,31 @@ export const incidentWorker = new Worker(
     console.log(`[Worker] Processing job ${job.id} for service ${serviceId}`);
 
     try {
-      // 1. Invoke Lambda to generate log in S3
-      console.log(`[Worker] Invoking AWS Lambda to generate crash log...`);
-      const { bucket, key } = await invokeLogGeneratorLambda();
-      const s3Url = `s3://${bucket}/${key}`;
+      let bucket: string;
+      let key: string;
+      let logContent: string;
+      let s3Url: string;
 
-      // 2. Fetch the newly generated log from S3
-      console.log(`[Worker] Fetching log from S3 (${s3Url})...`);
-      const logContent = await fetchLogFromS3(bucket, key);
+      if (payload.rawLog || payload.errorMessage) {
+        // REAL INTEGRATION PATH
+        console.log(`[Worker] Real error log detected in payload. Uploading directly to S3...`);
+        const realLogData = payload.rawLog || `Error: ${payload.errorMessage}\n\nStack:\n${payload.errorStack || 'No stack provided'}\n\nURL: ${payload.url}`;
+        const uploadResult = await uploadRealLogToS3(realLogData);
+        bucket = uploadResult.bucket;
+        key = uploadResult.key;
+        s3Url = `s3://${bucket}/${key}`;
+        logContent = realLogData;
+      } else {
+        // MOCK SIMULATION PATH (Manual Trigger)
+        console.log(`[Worker] Invoking AWS Lambda to generate mock crash log...`);
+        const lambdaResult = await invokeLogGeneratorLambda();
+        bucket = lambdaResult.bucket;
+        key = lambdaResult.key;
+        s3Url = `s3://${bucket}/${key}`;
+
+        console.log(`[Worker] Fetching mock log from S3 (${s3Url})...`);
+        logContent = await fetchLogFromS3(bucket, key);
+      }
       
       // 3. Send log to Google Gemini for Root Cause Analysis
       console.log(`[Worker] Sending log to Gemini AI for RCA...`);

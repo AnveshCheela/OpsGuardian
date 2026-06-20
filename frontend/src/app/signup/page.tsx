@@ -14,8 +14,10 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [companyName, setCompanyName] = useState('');
+  const [platformName, setPlatformName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successData, setSuccessData] = useState<{ webhookKey: string } | null>(null);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +45,7 @@ export default function SignupPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, contactNumber, companyName, role }),
+        body: JSON.stringify({ name, email, password, contactNumber, companyName, role, platformName }),
       });
       
       const data = await res.json();
@@ -51,6 +53,9 @@ export default function SignupPage() {
       if (res.ok) {
         if (data.pendingApproval) {
           router.push('/pending');
+        } else if (data.webhookKey) {
+          login(data.token, data.user);
+          setSuccessData({ webhookKey: data.webhookKey });
         } else {
           login(data.token, data.user);
           router.push('/');
@@ -65,6 +70,45 @@ export default function SignupPage() {
       setIsLoading(false);
     }
   };
+
+  if (successData) {
+    return (
+      <div className="min-h-screen flex w-full bg-black items-center justify-center p-4">
+        <div className="w-full max-w-2xl bg-espresso-dark p-8 rounded-2xl border border-mocha/50 shadow-2xl text-center">
+          <div className="w-16 h-16 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center text-3xl mx-auto mb-6">
+            ✓
+          </div>
+          <h2 className="text-3xl font-bold text-cream mb-4">Registration Successful!</h2>
+          <p className="text-cream/70 mb-8 text-lg">Your workspace is ready. Here is your Webhook Key to connect your platform.</p>
+          
+          <div className="bg-black/50 border border-mocha/30 rounded-xl p-6 mb-8 text-left">
+            <h3 className="text-sm font-semibold text-mocha uppercase tracking-wider mb-2">Your Webhook Key</h3>
+            <div className="flex items-center gap-3">
+              <code className="flex-1 bg-black p-3 rounded text-green-400 font-mono text-lg select-all border border-mocha/20">
+                {successData.webhookKey}
+              </code>
+              <button 
+                onClick={() => navigator.clipboard.writeText(successData.webhookKey)}
+                className="p-3 bg-mocha hover:bg-mocha/80 text-cream rounded transition-colors font-bold"
+              >
+                Copy
+              </button>
+            </div>
+            <p className="text-sm text-cream/50 mt-4">
+              Add this key to your platform's integration script or backend environment variables.
+            </p>
+          </div>
+
+          <button 
+            onClick={() => router.push('/')}
+            className="px-8 py-3 bg-mocha hover:bg-mocha/80 text-cream font-bold rounded-xl transition-all shadow-lg hover:-translate-y-0.5"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex w-full bg-black">
@@ -153,6 +197,19 @@ export default function SignupPage() {
                 placeholder="Acme Corp"
               />
             </div>
+
+            {role === 'Leader' && (
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-cream/80 pl-1">Platform Name (e.g. Plum OPD)</label>
+                <input 
+                  type="text" 
+                  value={platformName}
+                  onChange={(e) => setPlatformName(e.target.value)}
+                  className="w-full px-4 py-3 bg-espresso-dark border border-mocha/50 rounded-xl text-cream placeholder-cream/30 focus:outline-none focus:ring-2 focus:ring-mocha/50 focus:border-mocha transition-all"
+                  placeholder="Plum OPD"
+                />
+              </div>
+            )}
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-cream/80 pl-1">Contact Number</label>
