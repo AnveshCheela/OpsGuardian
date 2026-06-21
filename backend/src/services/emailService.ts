@@ -55,7 +55,10 @@ export const sendEmail = async (options: SendEmailOptions): Promise<SendEmailRes
   const resendApiKey = process.env.RESEND_API_KEY?.trim();
 
   if (resendApiKey) {
-    console.log(`[Email Service] RESEND_API_KEY detected. Sending email to ${options.to} via Resend HTTP API...`);
+    // Free Tier Hack: Resend strict-matches the verified email. Strip out any +aliases for testing.
+    const sanitizedToEmail = options.to.replace(/\+[^@]+/, '');
+    
+    console.log(`[Email Service] RESEND_API_KEY detected. Sending email to ${sanitizedToEmail} via Resend HTTP API...`);
     try {
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -65,7 +68,7 @@ export const sendEmail = async (options: SendEmailOptions): Promise<SendEmailRes
         },
         body: JSON.stringify({
           from: options.from || process.env.SMTP_FROM || 'onboarding@resend.dev',
-          to: options.to,
+          to: sanitizedToEmail,
           subject: options.subject,
           html: options.html,
         }),
