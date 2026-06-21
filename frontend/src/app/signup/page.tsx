@@ -45,7 +45,7 @@ export default function SignupPage() {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/v1/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, contactNumber, companyName, role, platformName }),
+        body: JSON.stringify({ name, email, password, contactNumber, companyName, role, platformName: companyName }),
       });
       
       const data = await res.json();
@@ -198,18 +198,7 @@ export default function SignupPage() {
               />
             </div>
 
-            {role === 'Leader' && (
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-cream/80 pl-1">Platform Name (e.g. Plum OPD)</label>
-                <input 
-                  type="text" 
-                  value={platformName}
-                  onChange={(e) => setPlatformName(e.target.value)}
-                  className="w-full px-4 py-3 bg-espresso-dark border border-mocha/50 rounded-xl text-cream placeholder-cream/30 focus:outline-none focus:ring-2 focus:ring-mocha/50 focus:border-mocha transition-all"
-                  placeholder="Plum OPD"
-                />
-              </div>
-            )}
+
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-cream/80 pl-1">Contact Number</label>
