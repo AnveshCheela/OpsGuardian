@@ -94,9 +94,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [token]);
 
-  const login = (newToken: string) => {
+  const login = (newToken: string, userToSet: User) => {
     localStorage.setItem('token', newToken);
     setToken(newToken);
+    setUser(userToSet); // Set immediately to prevent race condition on redirect
+    // We can still fetchUser to get any nested relations (like teams) that might be missing from the login payload
     fetchUser(newToken);
   };
 
