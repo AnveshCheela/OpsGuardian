@@ -2,7 +2,6 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../config/database';
 import { globalEvents } from '../events';
-import { escalationQueue } from '../workers/incidentWorker';
 import { incidentQueue } from '../queues/incidentQueue';
 import { requireAuth } from '../middleware/auth.middleware';
 

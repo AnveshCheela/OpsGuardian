@@ -23,24 +23,6 @@ services:
     volumes:
       - redis_data:/data
 
-  maildev:
-    image: maildev/maildev:latest
-    container_name: opsguardian-maildev
-    restart: always
-    ports:
-      - "1080:1080" # Web UI
-      - "1025:1025" # SMTP Port
-
-  alert-simulator:
-    build: ./alert-simulator
-    container_name: opsguardian-alert-simulator
-    restart: always
-    ports:
-      - "3333:3333"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
 volumes:
   postgres_data:
   redis_data:
-

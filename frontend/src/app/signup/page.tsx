@@ -14,7 +14,6 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [companyName, setCompanyName] = useState('');
-  const [platformName, setPlatformName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successData, setSuccessData] = useState<{ webhookKey: string } | null>(null);

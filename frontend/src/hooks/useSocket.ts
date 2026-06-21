@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-// Connect to our local Express/Socket.io backend
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}`;
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export const useSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -15,12 +14,10 @@ export const useSocket = () => {
 
     socketInstance.on("connect", () => {
       setIsConnected(true);
-      console.log("Connected to OpsGuardian backend via WebSockets");
     });
 
     socketInstance.on("disconnect", () => {
       setIsConnected(false);
-      console.log("Disconnected from backend");
     });
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
