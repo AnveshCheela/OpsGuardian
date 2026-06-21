@@ -66,8 +66,13 @@ export default function Dashboard() {
       setIncidents((prev) => [newIncident, ...prev]);
     });
 
+    socket.on("incident-updated", (updatedIncident: IncidentData) => {
+      setIncidents((prev) => prev.map(incident => incident.id === updatedIncident.id ? updatedIncident : incident));
+    });
+
     return () => {
       socket.off("new-incident");
+      socket.off("incident-updated");
     };
   }, [socket, user]);
 

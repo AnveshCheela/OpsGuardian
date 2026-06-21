@@ -78,11 +78,16 @@ globalEvents.on('new-incident', (incident) => {
   // Emit to the specific team room if the incident has service.teamId
   if (incident.service?.teamId) {
     io.to(`team:${incident.service.teamId}`).emit('new-incident', incident);
-    console.log(`[Socket.io] Emitted new-incident to team:${incident.service.teamId}`);
   }
   // Also emit globally for backwards compatibility
   io.emit('new-incident', incident);
-  console.log(`[Socket.io] Broadcasted new-incident: ${incident.id}`);
+});
+
+globalEvents.on('incident-updated', (incident) => {
+  if (incident.service?.teamId) {
+    io.to(`team:${incident.service.teamId}`).emit('incident-updated', incident);
+  }
+  io.emit('incident-updated', incident);
 });
 
 app.use(cors({
